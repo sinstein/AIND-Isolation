@@ -291,7 +291,21 @@ class AlphaBetaPlayer(IsolationPlayer):
             (-1, -1) if there are no available legal moves.
         """
         self.time_left = time_left
-        return self.alphabeta(game, self.search_depth)
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            search_depth = 1
+            while True:
+                best_move = self.alphabeta(game, search_depth)
+                search_depth += 1
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -349,6 +363,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             if v > best_score:
                 best_score = v
                 best_action = m
+            alpha = max(v, alpha)
 
         return best_action
 
@@ -356,11 +371,11 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == 0:
-            return game.utility(game.active_player)
+        if depth == 1:
+            return self.score(game, self)
 
-        if not game.get_legal_moves():
-            return game.utility()
+        if len(game.get_legal_moves()) is 0:
+            return self.score(game, self)
 
         v = float("-inf")
         for m in game.get_legal_moves():
@@ -375,13 +390,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == 0:
-            return game.utility(game.active_player)
+        if depth == 1:
+            return self.score(game, self)
 
-        if not game.get_legal_moves():
-            return game.utility()
+        if len(game.get_legal_moves()) is 0:
+            return self.score(game, self)
 
-        v = float("-inf")
+        v = float("inf")
         for m in game.get_legal_moves():
             v = min(v, self.max_value(game.forecast_move(m), depth - 1, alpha, beta))
             if v <= alpha:

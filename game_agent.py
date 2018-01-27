@@ -212,39 +212,46 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        return max(game.get_legal_moves(), key=lambda x: self.min_value(game.forecast_move(x), depth))
+        best_move = (-1, -1)
+        best_score = float("-inf")
+
+        for m in game.get_legal_moves():
+            move_score = self.min_value(game.forecast_move(m), depth)
+            if move_score > best_score:
+                best_score = move_score
+                best_move = m
+
+        return best_move
 
     def max_value(self, game, depth):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        v = float("-inf")
-
-        if depth == 0:
+        if depth == 1:
             return self.score(game, self)
 
-        if not game.get_legal_moves():
+        if len(game.get_legal_moves()) is 0:
             return self.score(game, self)
 
+        best_score = float("-inf")
         for m in game.get_legal_moves():
-            v = max(v, self.min_value(game.forecast_move(m), depth - 1))
-        return v
+            best_score = max(best_score, self.min_value(game.forecast_move(m), depth - 1))
+        return best_score
 
     def min_value(self, game, depth):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        v = float("inf")
-
-        if depth == 0:
+        if depth == 1:
             return self.score(game, self)
 
-        if not game.get_legal_moves():
+        if len(game.get_legal_moves()) is 0:
             return self.score(game, self)
 
+        best_score = float("inf")
         for m in game.get_legal_moves():
-            v = min(v, self.max_value(game.forecast_move(m), depth - 1))
-        return v
+            best_score = min(best_score, self.max_value(game.forecast_move(m), depth - 1))
+        return best_score
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -349,7 +356,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth < 0:
+        if depth == 0:
             return game.utility(game.active_player)
 
         if not game.get_legal_moves():
@@ -368,7 +375,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth < 0:
+        if depth == 0:
             return game.utility(game.active_player)
 
         if not game.get_legal_moves():
